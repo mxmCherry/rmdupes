@@ -4,8 +4,8 @@ Command rmdupes recursively removes duplicated files by content hash.
 
 Usage:
 
-	rmdupes path/to/dir
-	rmdupes --help
+	rmdupes             # get help
+	rmdupes path/to/dir # recursively remove duplicated files in path/to/dir
 
 */
 package main
@@ -45,13 +45,19 @@ func main() {
 }
 
 func run() error {
+	paths := flag.Args()
+	if len(paths) == 0 {
+		flag.PrintDefaults()
+		return nil
+	}
+
 	hasher := hasherByName(flags.hash)
 	if hasher == nil {
 		return fmt.Errorf("unknown hash: " + flags.hash + "; try these: md5, sha1, sha256, sha512")
 	}
 
 	walker := deduper(hasher, flags.printOnly)
-	for _, path := range flag.Args() {
+	for _, path := range paths {
 		path, err := filepath.Abs(path)
 		if err != nil {
 			return err

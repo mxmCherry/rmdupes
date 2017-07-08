@@ -11,11 +11,6 @@ go get -u github.com/mxmCherry/rmdupes
 # Use
 
 ```bash
-rmdupes path/to/dir
-```
-
-To get flags usage, run:
-
-```bash
-rmdupes --help
+rmdupes             # get help
+rmdupes path/to/dir # recursively remove duplicated files in path/to/dir
 ```
