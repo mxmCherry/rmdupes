@@ -1,3 +1,12 @@
+/*
+
+Command rmdupes removes duplicated files by content hash.
+
+Usage:
+
+	rmdupes --print-only --skip-hidden=false path/to/dir
+
+*/
 package main
 
 import (
