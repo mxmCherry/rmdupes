@@ -1,10 +1,12 @@
 /*
 
-Command rmdupes removes duplicated files by content hash.
+Command rmdupes recursively removes duplicated files by content hash.
 
 Usage:
 
-	rmdupes --print-only --skip-hidden=false path/to/dir
+	rmdupes path/to/dir
+
+	rmdupes --help
 
 */
 package main
@@ -30,7 +32,7 @@ var flags struct {
 }
 
 func init() {
-	flag.StringVar(&flags.hash, "hash", "sha512", "Hash to detect duplicated files (md5, sha1, sha256, sha512 - default)")
+	flag.StringVar(&flags.hash, "hash", "sha512", "Hash to detect duplicated files (md5, sha1, sha256, sha512)")
 	flag.BoolVar(&flags.printOnly, "print-only", false, "Only print files instead of removing")
 	flag.BoolVar(&flags.skipHidden, "skip-hidden", true, "Skip hidden files/directories (starting with dot)")
 }
@@ -46,7 +48,7 @@ func main() {
 func run() error {
 	hasher := hasherByName(flags.hash)
 	if hasher == nil {
-		return fmt.Errorf("unknown hash: " + flags.hash + ", supported are: md5, sha1, sha256, sha512")
+		return fmt.Errorf("unknown hash: " + flags.hash + "; try these: md5, sha1, sha256, sha512")
 	}
 
 	walker := deduper(hasher, flags.printOnly)
