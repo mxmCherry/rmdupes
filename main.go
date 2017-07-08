@@ -5,7 +5,6 @@ Command rmdupes recursively removes duplicated files by content hash.
 Usage:
 
 	rmdupes path/to/dir
-
 	rmdupes --help
 
 */
