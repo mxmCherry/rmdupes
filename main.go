@@ -25,15 +25,15 @@ import (
 )
 
 var flags struct {
-	hash       string
-	printOnly  bool
-	skipHidden bool
+	hash          string
+	printOnly     bool
+	processHidden bool
 }
 
 func init() {
 	flag.StringVar(&flags.hash, "hash", "sha512", "Hash to detect duplicated files (md5, sha1, sha256, sha512)")
-	flag.BoolVar(&flags.printOnly, "print-only", false, "Only print files instead of removing")
-	flag.BoolVar(&flags.skipHidden, "skip-hidden", true, "Skip hidden files/directories (starting with dot)")
+	flag.BoolVar(&flags.printOnly, "print", false, "Only print files instead of removing")
+	flag.BoolVar(&flags.processHidden, "hidden", true, "Process hidden (starting with dot) files/directories")
 }
 
 func main() {
@@ -63,7 +63,7 @@ func run() error {
 			return err
 		}
 
-		if err := walkFiles(path, flags.skipHidden, walker); err != nil {
+		if err := walkFiles(path, flags.processHidden, walker); err != nil {
 			return err
 		}
 	}
@@ -85,13 +85,13 @@ func hasherByName(name string) hash.Hash {
 	}
 }
 
-func walkFiles(path string, skipHidden bool, cb func(path string) error) error {
+func walkFiles(path string, processHidden bool, cb func(path string) error) error {
 	return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if skipHidden && strings.HasPrefix(info.Name(), ".") {
+		if !processHidden && strings.HasPrefix(info.Name(), ".") {
 			if info.IsDir() {
 				return filepath.SkipDir
 			}
