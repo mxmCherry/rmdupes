@@ -14,7 +14,7 @@ const (
 	None Flags = 0
 	// Recursive makes Walk to descend into inner dirs.
 	Recursive = 1 << (iota - 1)
-	// Hidden makes Walk to process hidden files/dirs.
+	// Hidden makes Walk to process hidden (starting with dot) files/dirs.
 	Hidden
 )
 
