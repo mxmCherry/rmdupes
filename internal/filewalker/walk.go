@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Flags defines Walk behaviour.
 type Flags uint8
 
 const (
