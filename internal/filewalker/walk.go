@@ -10,8 +10,11 @@ import (
 type Flags uint8
 
 const (
-	None      Flags = 0
-	Recursive       = 1 << (iota - 1)
+	// None defines default Walk behaviour.
+	None Flags = 0
+	// Recursive makes Walk to descend into inner dirs.
+	Recursive = 1 << (iota - 1)
+	// Hidden makes Walk to process hidden files/dirs.
 	Hidden
 )
 
