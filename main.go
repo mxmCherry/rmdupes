@@ -129,11 +129,14 @@ func walkFiles(path string, processHidden bool, cb func(path string) error) erro
 	}
 
 	fis, err := ioutil.ReadDir(path)
+	if err != nil {
+		return err
+	}
 	for _, fi := range fis {
 		if !fi.Mode().IsRegular() {
 			continue
 		}
-		if !processHidden && strings.HasPrefix(fi.Name(), "") {
+		if !processHidden && strings.HasPrefix(fi.Name(), ".") {
 			continue
 		}
 
