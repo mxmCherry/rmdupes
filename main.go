@@ -1,11 +1,11 @@
 /*
 
-Command rmdupes recursively removes duplicated files by content hash.
+Command rmdupes removes duplicated files by content hash.
 
 Usage:
 
 	rmdupes             # get help
-	rmdupes path/to/dir # recursively remove duplicated files in path/to/dir
+	rmdupes path/to/dir # remove duplicated files in path/to/dir
 
 */
 package main
@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,12 +29,15 @@ var flags struct {
 	hash          string
 	printOnly     bool
 	processHidden bool
+	recursive, r  bool
 }
 
 func init() {
 	flag.StringVar(&flags.hash, "hash", "sha512", "Hash to detect duplicated files (md5, sha1, sha256, sha512)")
 	flag.BoolVar(&flags.printOnly, "print", false, "Only print files instead of removing")
-	flag.BoolVar(&flags.processHidden, "hidden", true, "Process hidden (starting with dot) files/directories")
+	flag.BoolVar(&flags.processHidden, "hidden", false, "Process hidden (starting with dot) files/directories")
+	flag.BoolVar(&flags.recursive, "recursive", false, "Process files recursively (descend into inner dirs)")
+	flag.BoolVar(&flags.r, "r", false, "Process files recursively (descend into inner dirs)")
 }
 
 func main() {
@@ -56,14 +60,20 @@ func run() error {
 		return fmt.Errorf("unknown hash: " + flags.hash + "; try these: md5, sha1, sha256, sha512")
 	}
 
-	walker := deduper(hasher, flags.printOnly)
+	walker := walkFiles
+	if flags.recursive || flags.r {
+		walker = walkFilesRecursive
+	}
+
+	onFile := deduper(hasher, flags.printOnly)
+
 	for _, path := range paths {
 		path, err := filepath.Abs(path)
 		if err != nil {
 			return err
 		}
 
-		if err := walkFiles(path, flags.processHidden, walker); err != nil {
+		if err := walker(path, flags.processHidden, onFile); err != nil {
 			return err
 		}
 	}
@@ -85,7 +95,7 @@ func hasherByName(name string) hash.Hash {
 	}
 }
 
-func walkFiles(path string, processHidden bool, cb func(path string) error) error {
+func walkFilesRecursive(path string, processHidden bool, cb func(path string) error) error {
 	return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -103,6 +113,36 @@ func walkFiles(path string, processHidden bool, cb func(path string) error) erro
 		}
 		return nil
 	})
+}
+
+func walkFiles(path string, processHidden bool, cb func(path string) error) error {
+	stats, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if stats.Mode().IsRegular() {
+		return cb(path)
+	}
+	if !stats.IsDir() {
+		return nil
+	}
+
+	fis, err := ioutil.ReadDir(path)
+	for _, fi := range fis {
+		if !fi.Mode().IsRegular() {
+			continue
+		}
+		if !processHidden && strings.HasPrefix(fi.Name(), "") {
+			continue
+		}
+
+		fip := filepath.Join(path, fi.Name())
+		if err := cb(fip); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func deduper(hasher hash.Hash, printOnly bool) func(path string) error {
