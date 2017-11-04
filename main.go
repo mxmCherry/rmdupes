@@ -21,7 +21,6 @@ import (
 )
 
 var flags struct {
-	hash          string
 	printOnly     bool
 	recursive, r  bool
 	processHidden bool
